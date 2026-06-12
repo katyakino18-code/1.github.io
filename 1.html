@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Тригонометрическая окружность | Полная версия: синус, косинус, тангенс, котангенс</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none; /* для удобства перетаскивания */
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+            font-family: 'Segoe UI', 'Roboto', 'Inter', system-ui, -apple-system, sans-serif;
+            padding: 30px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* главный контейнер — как на макете: окружность + правая панель */
+        .dashboard {
+            max-width: 1400px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.68);
+            backdrop-filter: blur(8px);
+            border-radius: 56px;
+            padding: 28px 32px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+        }
+
+        .main-layout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 32px;
+            justify-content: center;
+        }
+
+        /* левая часть – окружность */
+        .canvas-area {
+            flex: 2;
+            min-width: 320px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #ffffffcc;
+            border-radius: 48px;
+            padding: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        canvas {
+            width: 100%;
+            height: auto;
+            max-width: 560px;
+            aspect-ratio: 1 / 1;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.2);
+            cursor: grab;
+            display: block;
+        }
+        canvas:active { cursor: grabbing; }
+
+        /* правая панель – чекбоксы и значения */
+        .right-panel {
+            flex: 1.2;
+            min-width: 260px;
+            background: #fefefeef;
+            backdrop-filter: blur(4px);
+            border-radius: 48px;
+            padding: 24px 22px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* угол и текущие значения */
+        .angle-card {
+            background: #1e2f3e;
+            border-radius: 40px;
+            padding: 16px 20px;
+            color: white;
+            box-shadow: inset 0 -1px 0 #ffffff30, 0 6px 12px rgba(0,0,0,0.1);
+        }
+        .angle-card h3 {
+            font-weight: 500;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            color: #ffdd99;
+        }
+        .angle-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            word-break: break-word;
+        }
+        .angle-sub {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 6px;
+        }
+        .trig-values {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .trig-item {
+            background: #2a4055;
+            border-radius: 28px;
+            padding: 8px 12px;
+            text-align: center;
+        }
+        .trig-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+        .trig-number {
+            font-size: 1.4rem;
+            font-weight: bold;
+            font-family: monospace;
+            line-height: 1.3;
+        }
+
+        /* панель флажков */
+        .checkbox-grid {
+display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 12px;
+            background: #eef3fc;
+            padding: 18px 16px;
+            border-radius: 32px;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            background: white;
+            padding: 6px 12px;
+            border-radius: 40px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .checkbox-label:hover { background: #e6f0ff; }
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #2c5f8a;
+            cursor: pointer;
+        }
+
+        /* кнопки и пресеты */
+        .action-buttons {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        button {
+            background: #2c5f8a;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 60px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            flex: 1;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            background: #1f4464;
+            transform: scale(0.97);
+        }
+        .presets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 5px;
+        }
+        .preset-btn {
+            background: #4a6f8f;
+            font-size: 0.75rem;
+            padding: 6px 12px;
+            flex: 0 0 auto;
+        }
+
+        /* график-палитра снизу (быстрые углы) */
+        .graph-buttons {
+            background: #eef2f7;
+            border-radius: 48px;
+            padding: 12px 14px;
+            margin-top: 8px;
+        }
+        .graph-title {
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #1e3b4f;
+            letter-spacing: 1px;
+        }
+        .angle-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        @media (max-width: 820px) {
+            .dashboard { padding: 16px; }
+            .trig-number { font-size: 1.1rem; }
+            .angle-value { font-size: 1.4rem; }
+        }
+        footer {
+            text-align: center;
+            font-size: 0.7rem;
+            margin-top: 24px;
+            color: #2c3e50;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <div class="main-layout">
+        <!-- холст с окружностью -->
+        <div class="canvas-area">
+            <canvas id="trigCanvas" width="600" height="600"></canvas>
+        </div>
+
+        <!-- правая панель управления -->
+        <div class="right-panel">
+            <div class="angle-card">
+                <h3>📐 Угол (0–360°)</h3>
+                <div class="angle-value"><span id="currentDeg">30.00</span>°</div>
+                <div class="angle-sub">радианы: <span id="currentRad">0.5236</span> rad</div>
+                <div class="trig-values">
+                    <div class="trig-item"><div class="trig-label">sin α</div><div class="trig-number" id="sinValue">1/2</div></div>
+                    <div class="trig-item"><div class="trig-label">cos α</div><div class="trig-number" id="cosValue">√3/2</div></div>
+                    <div class="trig-item"><div class="trig-label">tan α</div><div class="trig-number" id="tanValue">1/√3</div></div>
+                    <div class="trig-item"><div class="trig-label">cot α</div><div class="trig-number" id="cotValue">√3</div></div>
+                </div>
+            </div>
+
+            <div class="checkbox-grid" id="controlsPanel">
+<label class="checkbox-label"><input type="checkbox" id="snapToggle"> 🔒 Примагничивание к основным углам</label>
+                <label class="checkbox-label"><input type="checkbox" id="showSinCheck" checked> 📈 Показать значение синуса</label>
+                <label class="checkbox-label"><input type="checkbox" id="showCosCheck" checked> 📉 Показать значение косинуса</label>
+                <label class="checkbox-label"><input type="checkbox" id="showGridCheck" checked> 🕸️ Сетка</label>
+                <label class="checkbox-label"><input type="checkbox" id="showArcCheck" checked> 🔄 Угол (дуга)</label>
+                <label class="checkbox-label"><input type="checkbox" id="showDegLabels" checked> 📏 Градусные меры</label>
+                <label class="checkbox-label"><input type="checkbox" id="showRadLabels" checked> 📐 Радианные меры</label>
+            </div>
+
+            <div class="action-buttons">
+                <button id="animateBtn">🎬 Анимировать</button>
+                <button id="resetBtn">⟳ Сбросить</button>
+            </div>
+
+            <div class="presets" id="presetContainer"></div>
+
+            <div class="graph-buttons">
+                <div class="graph-title">⚡ График / быстрые углы</div>
+                <div class="angle-strip" id="quickAngles"></div>
+            </div>
+        </div>
+    </div>
+    <footer>🟢 Перетащите зелёную точку | Включите сетку / радианы / градусы | Тангенс и котангенс обновляются автоматически</footer>
+</div>
+
+<script>
+    (function(){
+        // ---------- элементы ----------
+        const canvas = document.getElementById('trigCanvas');
+        let ctx = canvas.getContext('2d');
+        let width = 600, height = 600, centerX = 300, centerY = 300, radius = 260;
+        
+        let currentAngleRad = Math.PI / 6;   // 30° по умолчанию
+        let dragging = false;
+        
+        // настройки отображения (чекбоксы)
+        let snapToAngles = false;
+        let showSinProj = true;
+        let showCosProj = true;
+        let showGrid = true;
+        let showArc = true;
+        let showDegreeLabels = true;
+        let showRadianLabels = true;
+        
+        let animationId = null;
+        let animating = false;
+        let animDirection = 1;
+        
+        // основные углы для магнита и пресетов (в градусах)
+        const majorDegrees = [0, 30, 45, 60, 90, 120, 135, 150, 180, 210, 225, 240, 270, 300, 315, 330];
+        // красивые отображения для sin/cos/tan в специальных случаях
+        function formatTrigValue(angleRad){
+            const angleDeg = angleRad * 180 / Math.PI;
+            const sinVal = Math.sin(angleRad);
+            const cosVal = Math.cos(angleRad);
+            const tanVal = Math.tan(angleRad);
+            const cotVal = 1 / tanVal;
+            
+            // функция, чтобы привести к "красивому" виду для стандартных углов
+            function beautify(val, type, deg){
+                const eps = 0.0001;
+                // абсолютные значения для сравнения
+                const absSin = Math.abs(Math.sin(angleRad));
+                const absCos = Math.abs(Math.cos(angleRad));
+                const absTan = Math.abs(tanVal);
+                
+                // для синуса
+                if(type === 'sin'){
+                    if(Math.abs(val - 0) < eps) return "0";
+                    if(Math.abs(val - 1) < eps) return "1";
+                    if(Math.abs(val - (-1)) < eps) return "-1";
+                    if(Math.abs(val - 1/2) < eps) return "1/2";
+                    if(Math.abs(val - (-1/2)) < eps) return "-1/2";
+                    if(Math.abs(val - Math.sqrt(3)/2) < 0.0001) return "√3/2";
+                    if(Math.abs(val + Math.sqrt(3)/2) < 0.0001) return "-√3/2";
+                    if(Math.abs(val - Math.sqrt(2)/2) < 0.0001) return "√2/2";
+                    if(Math.abs(val + Math.sqrt(2)/2) < 0.0001) return "-√2/2";
+                    return val.toFixed(4);
+                }
+                if(type === 'cos'){
+if(Math.abs(val - 0) < eps) return "0";
+                    if(Math.abs(val - 1) < eps) return "1";
+                    if(Math.abs(val - (-1)) < eps) return "-1";
+                    if(Math.abs(val - 1/2) < eps) return "1/2";
+                    if(Math.abs(val - (-1/2)) < eps) return "-1/2";
+                    if(Math.abs(val - Math.sqrt(3)/2) < 0.0001) return "√3/2";
+                    if(Math.abs(val + Math.sqrt(3)/2) < 0.0001) return "-√3/2";
+                    if(Math.abs(val - Math.sqrt(2)/2) < 0.0001) return "√2/2";
+                    if(Math.abs(val + Math.sqrt(2)/2) < 0.0001) return "-√2/2";
+                    return val.toFixed(4);
+                }
+                if(type === 'tan'){
+                    if(Math.abs(val) > 1000) return "∞";
+                    if(Math.abs(val - 0) < eps) return "0";
+                    if(Math.abs(val - 1) < eps) return "1";
+                    if(Math.abs(val - (-1)) < eps) return "-1";
+                    if(Math.abs(val - Math.sqrt(3)) < 0.0001) return "√3";
+                    if(Math.abs(val + Math.sqrt(3)) < 0.0001) return "-√3";
+                    if(Math.abs(val - 1/Math.sqrt(3)) < 0.0001) return "1/√3";
+                    if(Math.abs(val + 1/Math.sqrt(3)) < 0.0001) return "-1/√3";
+                    if(Math.abs(val - Math.sqrt(3)/3) < 0.0001) return "√3/3";
+                    return val.toFixed(4);
+                }
+                if(type === 'cot'){
+                    if(Math.abs(val) > 1000) return "0";
+                    if(Math.abs(val - 0) < eps) return "0";
+                    if(Math.abs(val - 1) < eps) return "1";
+                    if(Math.abs(val - (-1)) < eps) return "-1";
+                    if(Math.abs(val - Math.sqrt(3)) < 0.0001) return "√3";
+                    if(Math.abs(val + Math.sqrt(3)) < 0.0001) return "-√3";
+                    if(Math.abs(val - 1/Math.sqrt(3)) < 0.0001) return "1/√3";
+                    return val.toFixed(4);
+                }
+                return val.toFixed(4);
+            }
+            
+            const sinPretty = beautify(sinVal, 'sin', angleDeg);
+            const cosPretty = beautify(cosVal, 'cos', angleDeg);
+            const tanPretty = beautify(tanVal, 'tan', angleDeg);
+            const cotPretty = beautify(cotVal, 'cot', angleDeg);
+            return { sinPretty, cosPretty, tanPretty, cotPretty, sinNum: sinVal, cosNum: cosVal, tanNum: tanVal };
+        }
+        
+        function updateUI() {
+            const deg = (currentAngleRad * 180 / Math.PI).toFixed(2);
+            const rad = currentAngleRad.toFixed(5);
+            document.getElementById('currentDeg').innerText = deg;
+            document.getElementById('currentRad').innerText = rad;
+            const trig = formatTrigValue(currentAngleRad);
+            document.getElementById('sinValue').innerHTML = trig.sinPretty;
+            document.getElementById('cosValue').innerHTML = trig.cosPretty;
+            document.getElementById('tanValue').innerHTML = trig.tanPretty;
+            document.getElementById('cotValue').innerHTML = trig.cotPretty;
+            drawCanvas();
+        }
+        
+        function setAngle(rad, skipSnap = false) {
+            let newRad = rad % (2*Math.PI);
+            if (newRad < 0) newRad += 2*Math.PI;
+            if (!skipSnap && snapToAngles) {
+                let closestDeg = 360;
+                let minDiff = 360;
+                for (let deg of majorDegrees) {
+                    let r = deg * Math.PI/180;
+                    let diff = Math.abs(r - newRad);
+                    diff = Math.min(diff, 2*Math.PI - diff);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestDeg = deg;
+                    }
+                }
+                const snapThreshold = 8 * Math.PI/180; // ~8 градусов
+                if (minDiff < snapThreshold) {
+                    newRad = closestDeg * Math.PI/180;
+                }
+            }
+currentAngleRad = newRad;
+            updateUI();
+        }
+        
+        // геометрия: угол -> точка
+        function angleToPoint(rad){
+            let x = centerX + radius * Math.cos(rad);
+            let y = centerY - radius * Math.sin(rad);
+            return {x,y};
+        }
+        
+        function pointToAngle(px, py){
+            let dx = px - centerX;
+            let dy = centerY - py;
+            let ang = Math.atan2(dy, dx);
+            if(ang < 0) ang += 2*Math.PI;
+            return ang;
+        }
+        
+        // отрисовка
+        function drawCanvas() {
+            if(!ctx) return;
+            ctx.clearRect(0, 0, width, height);
+            ctx.save();
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Сетка (радиальные линии)
+            if(showGrid) {
+                ctx.beginPath();
+                ctx.lineWidth = 0.6;
+                ctx.strokeStyle = '#bdd4e8';
+                for(let deg = 0; deg < 360; deg += 15) {
+                    let rad = deg * Math.PI/180;
+                    let dx = Math.cos(rad);
+                    let dy = Math.sin(rad);
+                    let inX = centerX + (radius-8)*dx;
+                    let inY = centerY - (radius-8)*dy;
+                    let outX = centerX + (radius+6)*dx;
+                    let outY = centerY - (radius+6)*dy;
+                    ctx.beginPath();
+                    ctx.moveTo(inX, inY);
+                    ctx.lineTo(outX, outY);
+                    ctx.stroke();
+                }
+            }
+            
+            // оси координат
+            ctx.beginPath();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#2c3e66';
+            ctx.moveTo(centerX - radius - 20, centerY);
+            ctx.lineTo(centerX + radius + 20, centerY);
+            ctx.moveTo(centerX, centerY - radius - 20);
+            ctx.lineTo(centerX, centerY + radius + 20);
+            ctx.stroke();
+            
+            // Стрелки
+            ctx.fillStyle = '#1f3a4b';
+            ctx.beginPath(); ctx.moveTo(centerX+radius+10, centerY); ctx.lineTo(centerX+radius+18, centerY-4); ctx.lineTo(centerX+radius+18, centerY+4); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(centerX-radius-10, centerY); ctx.lineTo(centerX-radius-18, centerY-4); ctx.lineTo(centerX-radius-18, centerY+4); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(centerX, centerY-radius-10); ctx.lineTo(centerX-4, centerY-radius-18); ctx.lineTo(centerX+4, centerY-radius-18); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(centerX, centerY+radius+10); ctx.lineTo(centerX-4, centerY+radius+18); ctx.lineTo(centerX+4, centerY+radius+18); ctx.fill();
+            
+            // подписи градусных и радианных мер
+            if(showDegreeLabels || showRadianLabels){
+                const majorInfo = [
+                    {deg:0, radLabel:"0", degLabel:"0°"},
+                    {deg:30, radLabel:"π/6", degLabel:"30°"},
+                    {deg:45, radLabel:"π/4", degLabel:"45°"},
+                    {deg:60, radLabel:"π/3", degLabel:"60°"},
+                    {deg:90, radLabel:"π/2", degLabel:"90°"},
+                    {deg:120, radLabel:"2π/3", degLabel:"120°"},
+                    {deg:135, radLabel:"3π/4", degLabel:"135°"},
+                    {deg:150, radLabel:"5π/6", degLabel:"150°"},
+                    {deg:180, radLabel:"π", degLabel:"180°"},
+                    {deg:210, radLabel:"7π/6", degLabel:"210°"},
+                    {deg:225, radLabel:"5π/4", degLabel:"225°"},
+                    {deg:240, radLabel:"4π/3", degLabel:"240°"},
+                    {deg:270, radLabel:"3π/2", degLabel:"270°"},
+                    {deg:300, radLabel:"5π/3", degLabel:"300°"},
+                    {deg:315, radLabel:"7π/4", degLabel:"315°"},
+                    {deg:330, radLabel:"11π/6", degLabel:"330°"}
+                ];
+ctx.font = `bold ${Math.max(11, Math.floor(width/32))}px "Segoe UI"`;
+                for(let m of majorInfo){
+                    let rad = m.deg * Math.PI/180;
+                    let offset = 22;
+                    let x = centerX + (radius + offset) * Math.cos(rad);
+                    let y = centerY - (radius + offset) * Math.sin(rad);
+                    if(showRadianLabels){
+                        ctx.fillStyle = '#205072';
+                        ctx.fillText(m.radLabel, x-12, y+5);
+                    }
+                    if(showDegreeLabels){
+                        ctx.fillStyle = '#5b7f9e';
+                        ctx.font = `10px "Segoe UI"`;
+                        let xDeg = centerX + (radius + offset + 20) * Math.cos(rad);
+                        let yDeg = centerY - (radius + offset + 16) * Math.sin(rad);
+                        ctx.fillText(m.degLabel, xDeg-10, yDeg+4);
+                        ctx.font = `bold ${Math.max(11, Math.floor(width/32))}px "Segoe UI"`;
+                    }
+                }
+            }
+            
+            // Окружность
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2*Math.PI);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#1f4172';
+            ctx.stroke();
+            ctx.fillStyle = '#fefcf5';
+            ctx.fill();
+            
+            // Проекции синуса / косинуса
+            let point = angleToPoint(currentAngleRad);
+            let cosX = centerX + radius * Math.cos(currentAngleRad);
+            let sinY = centerY - radius * Math.sin(currentAngleRad);
+            if(showSinProj){
+                ctx.beginPath();
+                ctx.setLineDash([6, 8]);
+                ctx.strokeStyle = '#c94f7c';
+                ctx.lineWidth = 1.6;
+                ctx.moveTo(centerX, sinY);
+                ctx.lineTo(point.x, sinY);
+                ctx.stroke();
+            }
+            if(showCosProj){
+                ctx.beginPath();
+                ctx.moveTo(cosX, centerY);
+                ctx.lineTo(cosX, point.y);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+            
+            // Заливка между проекциями (опционально)
+            ctx.fillStyle = '#f7cfdf40';
+            ctx.fillRect(centerX, point.y, cosX-centerX, centerY-point.y);
+            
+            // подписи sin / cos на осях
+            if(showSinProj){
+                ctx.fillStyle = '#b83b5e';
+                ctx.font = "bold 12px monospace";
+                ctx.fillText(`sin = ${formatTrigValue(currentAngleRad).sinPretty}`, centerX+12, sinY-6);
+            }
+            if(showCosProj){
+                ctx.fillStyle = '#b83b5e';
+                ctx.fillText(`cos = ${formatTrigValue(currentAngleRad).cosPretty}`, cosX-45, centerY+18);
+            }
+            
+            // радиус и точка
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(point.x, point.y);
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = '#3f8c5e';
+            ctx.stroke();
+            ctx.shadowBlur = 6;
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, 12, 0, 2*Math.PI);
+            ctx.fillStyle = '#6fbf4c';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, 5, 0, 2*Math.PI);
+            ctx.fillStyle = '#1f6e43';
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            
+            // дуга угла
+            if(showArc){
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius-12, 0, currentAngleRad, false);
+                ctx.lineWidth = 3.5;
+                ctx.strokeStyle = '#ff914d';
+                ctx.stroke();
+            }
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 5, 0, 2*Math.PI);
+            ctx.fillStyle = '#1f4970';
+            ctx.fill();
+            ctx.restore();
+        }
+        
+        // обработчики перетаскивания
+function handleStart(e){
+            e.preventDefault();
+            dragging = true;
+            updateFromEvent(e);
+        }
+        function handleMove(e){
+            if(!dragging) return;
+            e.preventDefault();
+            updateFromEvent(e);
+        }
+        function handleEnd(e){
+            dragging = false;
+        }
+        function updateFromEvent(e){
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            let clientX, clientY;
+            if(e.touches){
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            let canvasX = (clientX - rect.left) * scaleX;
+            let canvasY = (clientY - rect.top) * scaleY;
+            canvasX = Math.min(Math.max(0, canvasX), width);
+            canvasY = Math.min(Math.max(0, canvasY), height);
+            let newAngle = pointToAngle(canvasX, canvasY);
+            setAngle(newAngle);
+        }
+        
+        // Анимация
+        function startAnimation(){
+            if(animationId) cancelAnimationFrame(animationId);
+            animating = true;
+            function step(){
+                if(!animating) return;
+                let newRad = currentAngleRad + 0.015 * animDirection;
+                if(newRad >= 2*Math.PI) newRad = 0;
+                if(newRad < 0) newRad = 2*Math.PI - 0.01;
+                setAngle(newRad);
+                animationId = requestAnimationFrame(step);
+            }
+            step();
+        }
+        function stopAnimation(){
+            if(animationId){
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            animating = false;
+        }
+        
+        // пресеты + быстрые углы
+        function buildPresets() {
+            const container = document.getElementById('presetContainer');
+            container.innerHTML = '';
+            majorDegrees.forEach(deg => {
+                let btn = document.createElement('button');
+                btn.className = 'preset-btn';
+                btn.innerText = `${deg}°`;
+                btn.addEventListener('click', () => {
+                    if(animating) stopAnimation();
+                    setAngle(deg * Math.PI/180);
+                });
+                container.appendChild(btn);
+            });
+            const quickDiv = document.getElementById('quickAngles');
+            quickDiv.innerHTML = '';
+            [0,30,45,60,90,120,135,150,180,210,225,240,270,300,315,330].forEach(deg=>{
+                let chip = document.createElement('button');
+                chip.style.background = '#5f7f9e';
+                chip.style.fontSize = '0.7rem';
+                chip.style.padding = '4px 10px';
+                chip.innerText = deg+"°";
+                chip.addEventListener('click', ()=>{
+                    if(animating) stopAnimation();
+                    setAngle(deg * Math.PI/180);
+                });
+                quickDiv.appendChild(chip);
+            });
+        }
+        
+        function resizeCanvas(){
+            const container = canvas.parentElement;
+            const maxWidth = Math.min(560, container.clientWidth);
+            canvas.style.width = `${maxWidth}px`;
+            canvas.style.height = `${maxWidth}px`;
+            canvas.width = maxWidth;
+            canvas.height = maxWidth;
+            width = maxWidth;
+            height = maxWidth;
+            centerX = width/2;
+            centerY = height/2;
+            radius = Math.min(width, height) * 0.42;
+            ctx = canvas.getContext('2d');
+            drawCanvas();
+        }
+        
+        // связывание чекбоксов
+        function bindCheckboxes(){
+document.getElementById('snapToggle').addEventListener('change', (e) => { snapToAngles = e.target.checked; if(!snapToAngles) setAngle(currentAngleRad, true); else setAngle(currentAngleRad); });
+            document.getElementById('showSinCheck').addEventListener('change', (e) => { showSinProj = e.target.checked; drawCanvas(); });
+            document.getElementById('showCosCheck').addEventListener('change', (e) => { showCosProj = e.target.checked; drawCanvas(); });
+            document.getElementById('showGridCheck').addEventListener('change', (e) => { showGrid = e.target.checked; drawCanvas(); });
+            document.getElementById('showArcCheck').addEventListener('change', (e) => { showArc = e.target.checked; drawCanvas(); });
+            document.getElementById('showDegLabels').addEventListener('change', (e) => { showDegreeLabels = e.target.checked; drawCanvas(); });
+            document.getElementById('showRadLabels').addEventListener('change', (e) => { showRadianLabels = e.target.checked; drawCanvas(); });
+        }
+        
+        function init(){
+            bindCheckboxes();
+            buildPresets();
+            resizeCanvas();
+            window.addEventListener('resize', () => { resizeCanvas(); drawCanvas(); });
+            setAngle(Math.PI/6, true);
+            canvas.addEventListener('mousedown', handleStart);
+            window.addEventListener('mousemove', handleMove);
+            window.addEventListener('mouseup', handleEnd);
+            canvas.addEventListener('touchstart', handleStart);
+            window.addEventListener('touchmove', handleMove);
+            window.addEventListener('touchend', handleEnd);
+            document.getElementById('resetBtn').addEventListener('click', () => { if(animating) stopAnimation(); setAngle(0); });
+            document.getElementById('animateBtn').addEventListener('click', () => {
+                if(animating) { stopAnimation(); }
+                else { startAnimation(); }
+            });
+        }
+        init();
+    })();
+</script>
+</body>
+</html>
